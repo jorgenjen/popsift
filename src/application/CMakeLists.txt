@@ -54,15 +54,20 @@ endif(WIN32)
 set(PD_INCLUDE_DIRS    ${Boost_INCLUDE_DIRS})
 set(PD_LINK_LIBS       ${Boost_LIBRARIES} ${CUDA_CUDADEVRT_LIBRARY})
 
-if(IL_FOUND OR DevIL_FOUND)
-  message(STATUS "DevIL found")
-  set(PD_COMPILE_OPTIONS "-DUSE_DEVIL")
-  list(APPEND PD_INCLUDE_DIRS ${IL_INCLUDE_DIR})
-  list(APPEND PD_LINK_LIBS    ${IL_LIBRARIES} ${ILU_LIBRARIES})
-else()
+# NOTE: Devil is not working for me with this code results in:
+# popsift/src/application/main.cpp:29:10: fatal error: devil_cpp_wrapper.hpp: No such file or directory
+#    29 | #include <devil_cpp_wrapper.hpp>
+
+
+# if(IL_FOUND OR DevIL_FOUND)
+#   message(STATUS "DevIL found")
+#   set(PD_COMPILE_OPTIONS "-DUSE_DEVIL")
+#   list(APPEND PD_INCLUDE_DIRS ${IL_INCLUDE_DIR})
+#   list(APPEND PD_LINK_LIBS    ${IL_LIBRARIES} ${ILU_LIBRARIES})
+# else()
   message(WARNING "DevIL not found -- Falling back to pgmread")
   set(PD_COMPILE_OPTIONS "" )
-endif()
+# endif()
 
 #############################################################
 # popsift-demo

@@ -6,12 +6,15 @@ cmake_minimum_required(VERSION 3.24)
 # "all" and "all-major" work for Intel and perhaps for ARM with discrete GPUs, but not Tegra and Jetson.
 if(EXISTS "/etc/nv_tegra_release")
   # The CC list for Tegras and Jetson will require manual updates
-  set(CMAKE_CUDA_ARCHITECTURES "53;62;72;87"
+  # set(CMAKE_CUDA_ARCHITECTURES "53;62;72;87"
+  # set(CMAKE_CUDA_ARCHITECTURES "53;62;72;87"
+  set(CMAKE_CUDA_ARCHITECTURES "87"
       CACHE
       STRING "Which CUDA CCs to support: native, all, all-major or an explicit list delimited by semicolons")
 else()
   # The CC list for discrete GPUs will require CMake updates
-  set(CMAKE_CUDA_ARCHITECTURES "all-major"
+# RTX 3070 ti is my card and 87 so faster compilaton
+  set(CMAKE_CUDA_ARCHITECTURES "87" 
       CACHE
       STRING "Which CUDA CCs to support: native, all, all-major or an explicit list delimited by semicolons")
 endif()
@@ -21,6 +24,10 @@ project(PopSift VERSION 1.0.0 LANGUAGES CXX CUDA)
 # Policy to support CUDA as a first-order language for CMake.
 # Since CMake 3.18. See https://cmake.org/cmake/help/latest/policy/CMP0104.html
 cmake_policy(SET CMP0104 NEW)
+
+# To generate compile_commands.json -- useful for clangd LSP
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 
 # Set build path as a folder named as the platform (linux, windows, darwin...) plus the processor type
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")

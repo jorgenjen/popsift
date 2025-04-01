@@ -36,115 +36,115 @@ struct ExtremaCounters
 
 struct ExtremaBuffers
 {
-    Descriptor*      desc;
-    int              ext_allocated;
-    int              ori_allocated;
+    Descriptor* desc;
+    int ext_allocated;
+    int ori_allocated;
 };
 
 struct DevBuffers
 {
     InitialExtremum* i_ext_dat[MAX_OCTAVES];
-    int*             i_ext_off[MAX_OCTAVES];
-    int*             feat_to_ext_map;
-    Extremum*        extrema;
-    Feature*         features;
+    int* i_ext_off[MAX_OCTAVES];
+    int* feat_to_ext_map;
+    Extremum* extrema;
+    Feature* features;
 };
 
 extern thread_local ExtremaCounters hct;
-extern __device__   ExtremaCounters dct;
-extern thread_local ExtremaBuffers  hbuf;
-extern __device__   ExtremaBuffers  dbuf;
-extern thread_local ExtremaBuffers  dbuf_shadow; // just for managing memories
-extern __device__   DevBuffers      dobuf;
-extern thread_local DevBuffers      dobuf_shadow; // just for managing memories
+extern __device__ ExtremaCounters dct;
+extern thread_local ExtremaBuffers hbuf;
+extern __device__ ExtremaBuffers dbuf;
+extern thread_local ExtremaBuffers dbuf_shadow; // just for managing memories
+extern __device__ DevBuffers dobuf;
+extern thread_local DevBuffers dobuf_shadow; // just for managing memories
 
 class Pyramid
 {
-    int          _num_octaves;
-    int          _levels;
-    Octave*      _octaves;
-    int          _gauss_group;
+    int _num_octaves;
+    int _levels;
+    Octave* _octaves;
+    int _gauss_group;
 
     /* initial blur variables are used for Gauss table computation,
      * not needed on device */
-    bool         _assume_initial_blur;
-    float        _initial_blur;
+    bool _assume_initial_blur;
+    float _initial_blur;
 
     /* used to implement a global barrier per octave */
-    int*         _d_extrema_num_blocks;
+    int* _d_extrema_num_blocks;
 
     /* the download of converted descriptors should be asynchronous */
     cudaStream_t _download_stream;
 
-public:
-    enum GaussTableChoice {
+  public:
+    enum GaussTableChoice
+    {
         Interpolated_FromPrevious,
         NotInterpolated_FromPrevious,
     };
 
-public:
-    Pyramid( const Config& config,
-             int     w,
-             int     h );
-    ~Pyramid( );
+  public:
+    Pyramid(const Config& config, int w, int h);
+    ~Pyramid();
 
-    void resetDimensions( const Config& conf, int width, int height );
+    void resetDimensions(const Config& conf, int width, int height);
 
     /** step 1: load image and build pyramid */
-    void step1( const Config& conf, ImageBase* img );
+    void step1(const Config& conf, ImageBase* img);
 
     /** step 2: find extrema, orientations and descriptor */
-    void step2( const Config& conf );
+    void step2(const Config& conf);
 
     /** step 3: download descriptors */
-    FeaturesHost* get_descriptors( const Config& conf );
+    FeaturesHost* get_descriptors(const Config& conf);
 
     /** step 3 (alternative): make copy of descriptors on device side */
-    FeaturesDev* clone_device_descriptors( const Config& conf );
+    FeaturesDev* clone_device_descriptors(const Config& conf);
 
-    void download_and_save_array( const char* basename );
+    void download_and_save_array(const char* basename);
 
-    void save_descriptors( const Config& conf, FeaturesHost* features, const char* basename );
+    void save_descriptors(const Config& conf, FeaturesHost* features, const char* basename);
 
     inline int getNumOctaves() const { return _num_octaves; }
-    inline int getNumLevels()  const { return _levels; }
+    inline int getNumLevels() const { return _levels; }
 
-    inline Octave& getOctave(const int o){ return _octaves[o]; }
+    inline Octave& getOctave(const int o) { return _octaves[o]; }
 
-private:
-    void horiz_from_input_image( const Config&    conf,
-                                 ImageBase*       base,
-					             cudaStream_t     stream );
-    inline void downscale_from_prev_octave( int octave, cudaStream_t stream );
+  private:
+    void horiz_from_input_image(const Config& conf, ImageBase* base, cudaStream_t stream);
+    inline void downscale_from_prev_octave(int octave, cudaStream_t stream);
 
-    void        horiz_from_prev_level_basic( int octave, int level, cudaStream_t stream );
-    void        horiz_from_prev_level_pairs( int octave, int level, cudaStream_t stream );
-    inline void horiz_from_prev_level( int octave, int level, cudaStream_t stream, GaussTableChoice useInterpolatedGauss );
-    void        vert_from_interm_basic( int octave, int level, cudaStream_t stream );
-    void        vert_from_interm_pairs( int octave, int level, cudaStream_t stream );
-    inline void vert_from_interm( int octave, int level, cudaStream_t stream, GaussTableChoice useInterpolatedGauss );
+    void horiz_from_prev_level_basic(int octave, int level, cudaStream_t stream);
+    void horiz_from_prev_level_pairs(int octave, int level, cudaStream_t stream);
+    inline void horiz_from_prev_level(int octave,
+                                      int level,
+                                      cudaStream_t stream,
+                                      GaussTableChoice useInterpolatedGauss);
+    void vert_from_interm_basic(int octave, int level, cudaStream_t stream);
+    void vert_from_interm_pairs(int octave, int level, cudaStream_t stream);
+    inline void vert_from_interm(int octave, int level, cudaStream_t stream, GaussTableChoice useInterpolatedGauss);
 
-    inline void dogs_from_blurred( int octave, int max_level, cudaStream_t stream );
+    inline void dogs_from_blurred(int octave, int max_level, cudaStream_t stream);
 
-    void reset_extrema_mgmt( );
-    void build_pyramid( const Config& conf, ImageBase* base );
-    void find_extrema( const Config& conf );
-    void reallocExtrema( int numExtrema );
+    void reset_extrema_mgmt();
+    void build_pyramid(const Config& conf, ImageBase* base);
+    void find_extrema(const Config& conf);
+    void reallocExtrema(int numExtrema);
 
-    int  extrema_filter_grid( const Config& conf, int ext_total ); // called at head of orientation
-    void orientation( const Config& conf );
+    int extrema_filter_grid(const Config& conf, int ext_total); // called at head of orientation
+    void orientation(const Config& conf);
 
-    void descriptors( const Config& conf );
+    void descriptors(const Config& conf);
 
-    void readDescCountersFromDevice( );
-    void readDescCountersFromDevice( cudaStream_t s );
-    void writeDescCountersToDevice( );
-    void writeDescCountersToDevice( cudaStream_t s );
-    int* getNumberOfBlocks( int octave );
-    void writeDescriptor( const Config& conf, std::ostream& ostr, FeaturesHost* features, bool really, bool with_orientation );
+    void readDescCountersFromDevice();
+    void readDescCountersFromDevice(cudaStream_t s);
+    void writeDescCountersToDevice();
+    void writeDescCountersToDevice(cudaStream_t s);
+    int* getNumberOfBlocks(int octave);
+    void writeDescriptor(
+      const Config& conf, std::ostream& ostr, FeaturesHost* features, bool really, bool with_orientation);
 
-    void clone_device_descriptors_sub( const Config& conf, FeaturesDev* features );
-
+    void clone_device_descriptors_sub(const Config& conf, FeaturesDev* features);
 };
 
 } // namespace popsift
