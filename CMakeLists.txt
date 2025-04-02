@@ -1,5 +1,5 @@
 # First-order language CUDA requires at least CMake 3.18
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.22)
 
 # Default seletion of CUDA Compute Capabilities.
 # This must be called before project() or cmake sets it to the oldest non-deprecated CC
@@ -13,8 +13,9 @@ if(EXISTS "/etc/nv_tegra_release")
       STRING "Which CUDA CCs to support: native, all, all-major or an explicit list delimited by semicolons")
 else()
   # The CC list for discrete GPUs will require CMake updates
-# RTX 3070 ti is my card and 87 so faster compilaton
-  set(CMAKE_CUDA_ARCHITECTURES "87" 
+  # RTX 3070 ti is my card and 87 so faster compilaton -- 89 for 4080 (all 4000)
+  
+  set(CMAKE_CUDA_ARCHITECTURES "89" 
       CACHE
       STRING "Which CUDA CCs to support: native, all, all-major or an explicit list delimited by semicolons")
 endif()

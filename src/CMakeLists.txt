@@ -34,7 +34,8 @@ add_library(popsift
         popsift/common/warp_bitonic_sort.h
         popsift/common/excl_blk_prefix_sum.h
         popsift/common/vec_macros.h
-        popsift/common/clamp.h)
+        popsift/common/clamp.h
+        popsift/common/device_print.h)
 
 target_link_libraries(popsift
                       PUBLIC

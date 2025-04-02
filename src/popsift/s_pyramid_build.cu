@@ -8,9 +8,12 @@
 #include "common/assist.h"
 #include "common/clamp.h"
 #include "common/debug_macros.h"
+#include "common/device_print.h"
 #include "gauss_filter.h"
 #include "sift_constants.h"
 #include "sift_pyramid.h"
+
+#include <cuda_runtime_api.h>
 
 #include <cstdio>
 #include <iostream>
@@ -164,6 +167,7 @@ __global__ static void printDoG(cudaSurfaceObject_t dog, int width, int height)
     }
     printf("\n\n");
 }
+
 /*************************************************************
  * V11: host side
  *************************************************************/
@@ -207,6 +211,14 @@ __host__ void Pyramid::build_pyramid(const Config& conf, ImageBase* base)
                 {
                     horiz_from_input_image(conf, base, stream);
                     vert_from_interm(octave, 0, stream, gaussTableChoice);
+
+                    int w = oct_obj.getWidth();
+                    int h = oct_obj.getHeight();
+                    // Synchronization is done in function so vert should be done before it prints
+                    popsift::print::print_region<false>(
+                      oct_obj.getDataSurface(), "FIRST octave after VERT: ", w - 8, w, h - 8, h);
+                    // popsift::print::print_region<true>(
+                    //   oct_obj.getIntermDataTexPoint(), "My TEXTURE: ", w - 8, w, h - 8, h);
                 }
                 else
                 {
