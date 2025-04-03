@@ -515,6 +515,7 @@ __global__ void find_extrema_in_dog(cudaTextureObject_t dog,
             // num_ext is the old value stored in dct.ext_ct[octave] might be required idk optimized away anyawys I
             // suppose
 
+            printf("\n\n\t Octave: %d extrema_count = %d\n", octave, dct.ext_ct[octave]);
             if(octave == 0 && width == 1280)
                 printf("ct=%d -- number_of_blocks - 1 = %d\n", ct, number_of_blocks - 1);
         }

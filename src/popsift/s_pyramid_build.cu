@@ -84,6 +84,12 @@ __host__ inline void Pyramid::downscale_from_prev_octave(int octave, cudaStream_
     h_grid.x = (unsigned int)grid_divide(width, h_block.x);
     h_grid.y = (unsigned int)grid_divide(height, h_block.y);
 
+    // if(octave == 1)
+    // {
+    //     popsift::print::print_region<true>(
+    //       prev_oct_obj, "DOWNSCALE FROM PREV OCTAVE SOURCE --  ", , int end_x, int start_y, int end_y, int level)
+    // }
+
     printf("DOWNSCALE FROM PREV OCTAVE grid (%d, %d)", h_grid.x, h_grid.y);
     gauss::get_by_2_pick_every_second<<<h_grid, h_block, 0, stream>>>(prev_oct_obj.getDataTexPoint(),
                                                                       prev_oct_obj.getWidth(),
@@ -216,7 +222,7 @@ __host__ void Pyramid::build_pyramid(const Config& conf, ImageBase* base)
                     int h = oct_obj.getHeight();
                     // Synchronization is done in function so vert should be done before it prints
                     popsift::print::print_region<false>(
-                      oct_obj.getDataSurface(), "FIRST octave after VERT: ", w - 8, w, h - 8, h);
+                      oct_obj.getDataSurface(), "FIRST octave after VERT: ", w - 8, w, h - 8, h, 0);
                     // popsift::print::print_region<true>(
                     //   oct_obj.getIntermDataTexPoint(), "My TEXTURE: ", w - 8, w, h - 8, h);
                 }
@@ -238,6 +244,25 @@ __host__ void Pyramid::build_pyramid(const Config& conf, ImageBase* base)
             }
         }
     }
+#define INSPTECT_OCTAVE 1
+#define INSPTECT_LEVEL 0
+    Octave& obj = _octaves[INSPTECT_OCTAVE];
+    int w = obj.getWidth();
+    int h = obj.getHeight();
+
+    Octave& prev_obj = _octaves[INSPTECT_OCTAVE - 1];
+    int prev_w = prev_obj.getWidth();
+    int prev_h = prev_obj.getHeight();
+
+    popsift::print::print_region<true>(prev_obj.getDataTexPoint(),
+                                       "Sub sampling source... ",
+                                       prev_w - 8,
+                                       prev_w,
+                                       prev_h - 8,
+                                       prev_h,
+                                       _levels - PREV_LEVEL);
+    popsift::print::print_region<false>(
+      obj.getDataSurface(), "OCTAVE PRINOUT BOTTOM CORNER --> ", w - 8, w, h - 8, h, 0);
 
     for(int octave = 0; octave < _num_octaves; octave++)
     {
@@ -245,8 +270,14 @@ __host__ void Pyramid::build_pyramid(const Config& conf, ImageBase* base)
         cudaStream_t stream = oct_obj.getStream();
         dogs_from_blurred(octave, _levels, stream);
 
-        if(octave == 0)
-            printDoG<<<1, 1>>>(oct_obj.getDogSurface(), oct_obj.getWidth(), oct_obj.getHeight());
+        // if(octave == 3)
+        // {
+        //     int w = oct_obj.getWidth();
+        //     int h = oct_obj.getHeight();
+        //     popsift::print::print_region<false>(
+        //       oct_obj.getDogSurface(), "DoG leve 0 for octave 0 --> ", w - 8, w, h - 8, h);
+        // }
+        // printDoG<<<1, 1>>>(oct_obj.getDogSurface(), oct_obj.getWidth(), oct_obj.getHeight());
     }
 
     for(int octave = 0; octave < _num_octaves; octave++)
