@@ -47,3 +47,7 @@ oxford
 
 # Downloaded archives for tests.
 *.tgz
+.cache/clangd/index
+testScripts
+me_popsift.zip
+text.txt
